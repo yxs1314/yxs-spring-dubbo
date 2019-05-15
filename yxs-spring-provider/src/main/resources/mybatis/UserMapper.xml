@@ -1,0 +1,109 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.jk.dao.UserDao">
+    <!-- 删除 -->
+    <delete id="deleteou" parameterType="int">
+        delete from t_user where id in
+        <foreach collection="array" item="item" separator="," open="(" close=")">
+            #{item}
+        </foreach>
+    </delete>
+    <!-- 新增 -->
+ <insert id="addUser" parameterType="com.jk.model.UserBean"  useGeneratedKeys="true" keyProperty="id">
+  insert into t_user(name,account,password,sex,age,deptid,status)values(#{name,jdbcType=VARCHAR},#{account,jdbcType=VARCHAR},#{password,jdbcType=VARCHAR},#{sex,jdbcType=NUMERIC},#{age,jdbcType=NUMERIC},#{deptid,jdbcType=NUMERIC},0)
+</insert>
+    <!-- 保存用户角色中间表 -->
+    <insert id="saveUserRole">
+        insert into t_user_role (userid,roleid) values
+        <foreach collection="roleArr" item="roleid" separator="," >
+            (#{id},#{roleid})
+        </foreach>
+    </insert>
+    <!-- 根据角色id查找关联的权限 -->
+    <select id="findPowerByRoleId" parameterType="int" resultType="com.jk.model.NavBean">
+     select n.* from t_nav n
+		left join t_role_power rp on rp.powerid = n.id
+		  where rp.roleid=#{roleid}
+</select>
+    <!-- 权限详细表分页1 -->
+    <select id="queryMenuBeanCount"  parameterType="map" resultType="int">
+        select count(1) from t_power_menu m
+    </select>
+    <!-- 权限详细表分页2 -->
+    <select id="findMenu" parameterType="map" resultType="com.jk.model.MenuBean">
+        select m.id,m.name,m.url,m.powerid from t_power_menu m
+          where powerid=#{powerid}
+          limit  #{start},#{rows}
+    </select>
+    <!-- 权限详情表删除 -->
+    <delete id="deleteMenu" parameterType="int">
+        delete from t_power_menu where id in
+        <foreach collection="array" item="item" separator="," open="(" close=")">
+            #{item}
+        </foreach>
+    </delete>
+    <!-- 角色删除 -->
+    <delete id="deleteRole" parameterType="int">
+        delete from t_role where id in
+        <foreach collection="array" item="item" separator="," open="(" close=")">
+            #{item}
+        </foreach>
+    </delete>
+    <!-- 角色新增 -->
+    <insert id="addRole" parameterType="com.jk.model.RoleBean">
+  insert into t_role(name,info)values(#{name,jdbcType=VARCHAR},#{info,jdbcType=VARCHAR})
+</insert>
+    <!-- 角色修改 -->
+    <update id="updateRole" parameterType="com.jk.model.RoleBean">
+   update  t_role set name=#{name},info=#{info} where id=#{id}
+ </update>
+    <!-- 权限详情表新增 -->
+    <insert id="addMenu" parameterType="com.jk.model.MenuBean">
+  insert into t_power_menu(name,url,powerid)values(#{name,jdbcType=VARCHAR},#{url,jdbcType=VARCHAR},#{powerid,jdbcType=NUMERIC})
+</insert>
+    <!-- 权限详细表单修改 -->
+    <update id="updateMenu" parameterType="com.jk.model.MenuBean">
+   update  t_power_menu set name=#{name},url=#{url},powerid=#{powerid} where id=#{id}
+ </update>
+    <!-- 权限详情表回显 -->
+    <select id="editMenu" parameterType="int" resultType="com.jk.model.MenuBean">
+   select m.id,m.name,m.url,m.powerid from t_power_menu m
+        where m.id=#{id,jdbcType=NUMERIC}
+</select>
+    <!-- 角色回显 -->
+    <select id="editRole" parameterType="int" resultType="com.jk.model.RoleBean">
+   select r.id,r.name,r.info from t_role r
+        where r.id=#{id,jdbcType=NUMERIC}
+</select>
+    <!-- 删除权限节点 -->
+    <delete id="deletePower" parameterType="int">
+		delete from t_nav where id=#{powerId}
+</delete>
+    <!-- 保存树节点 -->
+    <insert id="savePower" parameterType="com.jk.model.NavBean">
+		insert into t_nav(text,url,pid) values(#{text},#{url},#{pid})
+	</insert>
+    <!-- 根据角色id删除对应的权限数据 -->
+    <delete id="deleteRolePower" parameterType="int">
+   delete from t_role_power where roleid=#{value}
+</delete>
+    <!-- 保存角色权限数据 -->
+    <insert id="saveRolePower">
+        insert into t_role_power (roleid,powerid) values
+        <foreach collection="powerArr" item="item" separator=",">
+            (#{roleId},#{item})
+        </foreach>
+    </insert>
+    <!-- 登录 -->
+    <select id="getUserInfoByLoginNumber" resultType="com.jk.model.UserBean">
+     select
+		u.id,u.name,u.account,u.password,u.sex,u.age,u.status,a.name as deptname,c.name as provincename,c1.name as cityname,group_concat(r.name) rolename
+		from t_user u
+		left join t_dept  a on u.deptid=a.id
+        left join t_area  c on u.province=c.id
+        left join t_area c1 on u.city=c1.id
+        left join t_user_role ur on u.id=ur.userid
+        left join t_role r on r.id=ur.roleid
+           where u.account=#{account}
+  </select>
+</mapper>

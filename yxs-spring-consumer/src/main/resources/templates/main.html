@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <script src="/js/easyui1.5/jquery.min.js"></script>
+    <link rel="stylesheet" href="/js/easyui1.5/themes/icon.css"/>
+    <link rel="stylesheet" href="/js/easyui1.5/themes/default/easyui.css"/>
+    <script src="/js/easyui1.5/jquery.easyui.min.js"></script>
+    <script src="/js/util-js.js"></script>
+    <script src="/js/easyui1.5/locale/easyui-lang-zh_CN.js"></script>
+</head>
+<body>
+<div class="easyui-layout" data-options="fit:true">
+    <div data-options="region:'north',title:'标题'" style="height:15%;text-align: center;">
+        <h1>账户管理系统</h1>
+    </div>
+    <div data-options="region:'west',title:'导航'" style="width:20%">
+        <div class="easyui-accordion" data-options="fit:true,selected:2">
+            <div title='递归树'>
+                <ul id="navTree"></ul>
+            </div>
+        </div>
+    </div>
+    <div data-options="region:'center',title:'内容'">
+        <div id="myTabs" class="easyui-tabs" data-options="fit:true">
+            <div title="欢迎">
+                <center> <h1>欢迎使用帅帅的页面,很高兴为您服务</h1> </center>
+            </div>
+        </div>
+    </div>
+    <!-- <div data-options="region:'east',title:'信息'" style="width:20%"></div> -->
+    <!-- <div data-options="region:'south',title:'备注'" style="height:10%"></div> -->
+</div>
+</body>
+<script type="text/javascript">
+    //树
+    $("#navTree").tree({
+        url:"../user/findNavTreeCommon",
+        parentField:'pid',
+        onClick:function(node){
+            if(node.url!=null&&node.url!=''){
+                if($("#myTabs").tabs("exists",node.text)){
+                    $("#myTabs").tabs("select",node.text);
+                }else{
+                    $('#myTabs').tabs('add',{
+                        title:node.text,
+                        content:createJsp(node.url),
+                        closable:true,
+                        tools:[{
+                            iconCls:'icon-mini-refresh',
+                            handler:function(){
+                                //刷新页面
+                                $('#myTabs').tabs('update', {
+                                    tab: $('#myTabs').tabs('getSelected'),
+                                    options: {
+                                        title: node.text,
+                                        href: createJsp(node.url)  // 新内容的URL
+                                    }
+                                });
+                            }
+                        }]
+                    });
+                }
+            }
+        }
+    })
+
+    function createJsp(url){
+        return "<iframe frameborder='0' src='"+url+"' style='width:100%;height:100%' scrolling='auto'></iframe>";
+    }
+</script>
+</html>

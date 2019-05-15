@@ -1,0 +1,551 @@
+<!DOCTYPE html>
+<html lang="en"  xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <link rel="stylesheet" href="/js/easyui1.5/themes/default/easyui.css">
+    <link rel="stylesheet" href="/js/easyui1.5/themes/icon.css">
+    <link rel="stylesheet" href="/js/uploadify/uploadify.css">
+    <link rel="stylesheet" href="/js/kindeditor-4.1.10/themes/default/default.css">
+    <script src="/js/easyui1.5/jquery.min.js"></script>
+    <script src="/js/easyui1.5/jquery.easyui.min.js"></script>
+    <script src="/js/easyui1.5/locale/easyui-lang-zh_CN.js"></script>
+    <script src="/js/uploadify/jquery.uploadify.js"></script>
+    <script src="/js/kindeditor-4.1.10/kindeditor-all.js"></script>
+</head>
+<body>
+<div class="easyui-layout" data-options="fit:true">
+    <div data-options="region:'west',title:'角色列表'" style="width:30%">
+        <div id="toolbar">
+            <a class="easyui-linkbutton" id="addBtn" data-options="iconCls:'icon-add',plain:true" >新增</a>
+            <a class="easyui-linkbutton" id="delManyBtn"  data-options="iconCls:'icon-remove',plain:true">批量删除</a>
+        </div>
+        <table id="roleTable"></table>
+        <div id="roleDialog" class="easyui-dialog" data-options="title:'新增角色',iconCls:'icon-add',closed:true,modal:true,
+       buttons:[{
+          text:'保存',
+          iconCls:'icon-save',
+          handler:function(){
+            saveRole();
+          }
+       },{
+          text:'关闭',
+          iconCls:'icon-cancel',
+          handler:function(){
+          closeBookDialog();
+          }
+       }]" style="width:750px;height:350px">
+            <form id="roleForm" method="post">
+                <table>
+                    <tr>
+                        <td>角色名称</td>
+                        <td>
+                            <input type="hidden" name="id">
+                            <input type="text" class="easyui-textbox" name="name">
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>描述</td>
+                        <td>
+                            <textarea rows="" cols="" id="content" style="width: 650px;"></textarea>
+                            <textarea rows="" cols="" id="hideinfo" name="info" style="display: none;"></textarea>
+                        </td>
+                    </tr>
+                </table>
+            </form>
+        </div>
+    </div>
+    <div data-options="region:'center',title:'权限列表'">
+        <div class="easyui-panel" data-options="fit:true,footer:'#footer'">
+            <!-- 隐藏角色id的文本框： -->
+            <input style="display:none;" id="roleId">
+            <ul id="powerTree"></ul>
+        </div>
+        <!-- 保存角色权限按钮： -->
+        <div id="footer" style="text-align:right;">
+            <a class="easyui-linkbutton" onclick="saveRolePower()" data-options="iconCls:'icon-ok',plain:true" >保存</a>
+        </div>
+        <!-- 右键菜单定义如下： -->
+        <div id="mm" class="easyui-menu" style="width:120px;">
+            <div onclick="openPower()" data-options="iconCls:'icon-add'">新增</div>
+            <div onclick="deletePower()" data-options="iconCls:'icon-remove'">删除</div>
+            <div onclick="updatePower()" data-options="iconCls:'icon-edit'">修改</div>
+        </div>
+        <!-- 权限对话框 -->
+        <div id="powerDialog" class="easyui-dialog" data-options="closed:true,modal:true,width:300,height:200,buttons:'#buttons'">
+            名称：<input class="easyui-textbox" id="powerName"><br>
+            url：<input class="easyui-textbox" id="powerUrl"><br>
+        </div>
+        <div id="buttons">
+            <a class="easyui-linkbutton" onclick="savePower()" data-options="iconCls:'icon-ok'" >保存</a>
+            <a class="easyui-linkbutton" onclick="closeDialog()" data-options="iconCls:'icon-cancel'" >关闭</a>
+        </div>
+    </div>
+    <div data-options="region:'east',title:'权限详细列表'" style="width:40%">
+        <div id="toolbar1">
+            <table>
+                <tr>
+                    <td>菜单名</td>
+                    <td><input class="easyui-textbox" id="name2"></td>
+                    <td>请求地址</td>
+                    <td><input class="easyui-textbox" id="url"></td>
+                </tr>
+                <tr>
+                    <td colspan="4">
+                        <a class="easyui-linkbutton" id="searchBtn2" data-options="iconCls:'icon-search',plain:true" >搜索</a><br>
+                    </td>
+                </tr>
+                <tr>
+                    <td colspan="4">
+                        <a class="easyui-linkbutton" id="addBtn2" data-options="iconCls:'icon-add',plain:true" >新增</a>
+                        <a class="easyui-linkbutton" id="delManyBtn2"  data-options="iconCls:'icon-remove',plain:true">批量删除</a>
+                    </td>
+                </tr>
+            </table>
+        </div>
+        <table id="menuTable"></table>
+        <div id="menuDialog" class="easyui-dialog" data-options="title:'新增权限',iconCls:'icon-add',closed:true,modal:true,
+       buttons:[{
+          text:'保存',
+          iconCls:'icon-save',
+          handler:function(){
+            saveMenu();
+          }
+       },{
+          text:'关闭',
+          iconCls:'icon-cancel',
+          handler:function(){
+          closeBookDialog2();
+          }
+       }]" style="width:750px;height:350px">
+            <form id="menuForm" method="post">
+                <table>
+                    <tr>
+                        <td>菜单名称</td>
+                        <td>
+                            <input type="hidden" name="id">
+                            <input type="text" class="easyui-textbox" name="name">
+                            <input type="hidden" name="powerid" id="powerid">
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>请求地址</td>
+                        <td>
+                            <input type="text" class="easyui-textbox" name="url">
+                        </td>
+                    </tr>
+                </table>
+            </form>
+        </div>
+    </div>
+</div>
+</body>
+<script type="text/javascript" th:inline="none">
+    $(function(){
+        initPowerTree(-1);//初始化权限树
+        initPowerMenuTable(-1);//初始化详细菜单列表
+    })
+    //保存角色权限
+    function saveRolePower(){
+        //获取隐藏id
+        var roleId = $("#roleId").val();
+        //获取选中的节点
+        var checkedArr = $("#powerTree").tree("getChecked","checked");
+        //获取不确定的节点
+        var indeteArr = $("#powerTree").tree("getChecked","indeterminate");
+
+        var powerids = "";
+        for (var i = 0; i < checkedArr.length; i++) {
+            if(powerids == ""){
+                powerids += checkedArr[i].id;
+            }else{
+                powerids += "," + checkedArr[i].id;
+            }
+        }
+
+        for (var i = 0; i < indeteArr.length; i++) {
+            if(powerids == ""){
+                powerids += indeteArr[i].id;
+            }else{
+                powerids += "," + indeteArr[i].id;
+            }
+        }
+        $.ajax({
+            url:"../user/saveRolePower",
+            type:"post",
+            data:{roleId:roleId,powerids:powerids},
+            success:function(){
+                //刷新树数据
+                initPowerTree(roleId);
+                alert("保存成功");
+            }
+        })
+    }
+    //赋权限：回显
+    function openRolePower(roleid){
+        //给隐藏id赋值
+        $("#roleId").val(roleid);
+        //初始化权限树
+        initPowerTree(roleid);
+    }
+    //修改节点
+    function updatePower(){
+        var node= $("#powerTree").tree("getSelected");
+        $("#powerTree").tree("beginEdit",node.target);//开始编辑一个节点。
+    }
+    //保存权限节点
+    function savePower(){
+        var powerName = $("#powerName").textbox("getValue");
+        var powerUrl = $("#powerUrl").textbox("getValue");
+        var powerId = $("#powerTree").tree("getSelected").id;
+        $.ajax({
+            url:"../user/savePower",
+            type:"post",
+            data:{pid:powerId,text:powerName,url:powerUrl},
+            success:function(){
+                //关闭对话框
+                $("#powerDialog").dialog("close");
+                //刷新树数据
+                initPowerTree(-1);
+            }
+        })
+    }
+    //打开新增权限详情弹框
+    function openPower(){
+        var powerid = $("#powerid").val(node.id);
+        if(powerid != null && powerid != ''){
+            $("#menuDialog").dialog("open");
+        }
+    }
+    //打开新增权限弹框
+    function openPower(){
+        $("#powerDialog").dialog("open");
+    }
+    //删除权限节点
+    function deletePower(){
+        //获取当前选中的节点
+        var powerId = $("#powerTree").tree("getSelected").id;
+        $.ajax({
+            url:"../user/deletePower",
+            type:"post",
+            data:{powerId:powerId},
+            success:function(){
+                //刷新树数据
+                initPowerTree(-1);
+            }
+        })
+    }
+    //角色修改(回显)
+    function edit(id){
+        $.ajax({
+            url:"../user/editRole",
+            type:"post",
+            data:{
+                id:id
+            },
+            dataType:"json",
+            success:function(data){
+                $("#roleForm").form('load',data);
+                //特殊回显处理
+            // $("#showImg").attr('src','<%=request.getContextPath()%>/'+data.head_img);
+                editor.html(data.info);
+            }
+        })
+        $("#roleDialog").dialog({
+            title:'修改角色',
+            iconCls:'icon-edit',
+            closed:false,
+        });
+    }
+    //修改权限详情(回显)
+    function edit2(id){
+        $.ajax({
+            url:"../user/editMenu",
+            type:"post",
+            data:{
+                id:id
+            },
+            dataType:"json",
+            success:function(data){
+
+                $("#menuForm").form('load',data);
+            }
+        })
+        $("#menuDialog").dialog({
+            title:'修改权限详情',
+            iconCls:'icon-edit',
+            closed:false,
+        });
+    }
+
+    //新增权限详情按钮（保存）
+    function saveMenu(){
+        $("#menuForm").form({
+            url:"../user/addMenu",
+            success:function(data){
+                if(data == 'true'){
+                    $.messager.alert('提示','成功','info');
+                    closeBookDialog2();
+                    initPowerMenuTable($("#powerid").val());//初始化详细菜单列表
+                }else{
+                    $.messager.alert('提示','失败','warning');
+                }
+            }
+        });
+        $("#menuForm").submit();
+    }
+    //新增（easyui按钮）权限详情按钮
+    $("#addBtn2").click(function(){
+        $("#menuForm").form('reset');
+        $("#menuDialog").dialog({
+            title:'新增权限详情',
+            iconCls:'icon-add',
+            closed:false
+        });
+    })
+    //新增按钮（保存）
+    function saveRole(){
+        $("#hideinfo").val(editor.html())
+            $("#roleForm").form({
+            url:"../user/addRole",
+            success:function(data){
+                if(data == 'true'){
+                    closeBookDialog();
+                    $("#roleTable").datagrid('reload');
+                }else{
+                    $.messager.alert('提示','新增失败','warning');
+                }
+            }
+        });
+        $("#roleForm").submit();
+    }
+    //新增（easyui按钮）
+    $("#addBtn").click(function(){
+        $("#roleForm").form('reset');
+        editor.html('');
+        $("#roleDialog").dialog({
+            title:'新增角色',
+            iconCls:'icon-add',
+            closed:false
+        });
+    })
+    //关闭弹框
+    function closeBookDialog2(){
+        $("#menuDialog").dialog('close');
+    }
+    //关闭弹框
+    function closeBookDialog(){
+        $("#roleDialog").dialog('close');
+    }
+    //关闭弹框
+    function closeDialog(){
+        $("#powerDialog").dialog('close');
+    }
+    //角色删除..批删
+    $("#delManyBtn").click(function(){
+        var books = $("#roleTable").datagrid('getSelections');
+        if(books.length <= 0){
+            $.messager.alert('提示','请选择需要删除的数据','warning');
+            return;
+        }
+        $.messager.confirm('确认对话框','您确定要删除吗?',function(r){
+            if(r){
+                var ids = "";
+                for (var i = 0; i < books.length; i++) {
+                    ids += ids == "" ? books[i].id : ","+books[i].id;
+                }
+                $.ajax({
+                    url:"../user/deleteRole",
+                    type:"post",
+                    data:{
+                        ids:ids
+                    },
+                    dataType:"json",
+                    success:function(data){
+                        if(data){
+                            $("#roleTable").datagrid('reload');
+                        }else{
+                            $.messager.alert('提示','删除失败','error');
+                        }
+                    }
+                })
+            }
+        })
+    })
+    //角色删除..单删
+    function del(id){
+        $.messager.confirm('确认对话框','您确定要删除吗?',function(r){
+            if(r){
+                $.ajax({
+                    url:"../user/deleteRole",
+                    type:"post",
+                    data:{
+                        ids:id
+                    },
+                    dataType:"json",
+                    success:function(data){
+                        if(data){
+                            $("#roleTable").datagrid('reload');
+                        }else{
+                            $.messager.alert('提示','删除失败','error');
+                        }
+                    }
+                })
+            }
+        })
+    }
+    //权限详细表删除..批删
+    $("#delManyBtn2").click(function(){
+        var books = $("#menuTable").datagrid('getSelections');
+        if(books.length <= 0){
+            $.messager.alert('提示','请选择需要删除的数据','warning');
+            return;
+        }
+        $.messager.confirm('确认对话框','您确定要删除吗?',function(r){
+            if(r){
+                var ids = "";
+                for (var i = 0; i < books.length; i++) {
+                    ids += ids == "" ? books[i].id : ","+books[i].id;
+                }
+                $.ajax({
+                    url:"../user/deleteMenu",
+                    type:"post",
+                    data:{
+                        ids:ids
+                    },
+                    dataType:"json",
+                    success:function(data){
+                        if(data){
+                            $("#menuTable").datagrid('reload');
+                        }else{
+                            $.messager.alert('提示','删除失败','error');
+                        }
+                    }
+                })
+            }
+        })
+    })
+    //权限详细表删除..单删
+    function del2(id){
+        $.messager.confirm('确认对话框','您确定要删除吗?',function(r){
+            if(r){
+                $.ajax({
+                    url:"../user/deleteMenu",
+                    type:"post",
+                    data:{
+                        ids:id
+                    },
+                    dataType:"json",
+                    success:function(data){
+                        if(data){
+                            $("#menuTable").datagrid('reload');
+                        }else{
+                            $.messager.alert('提示','删除失败','error');
+                        }
+                    }
+                })
+            }
+        })
+    }
+    //查询列表2初始化详细菜单列表
+    function initPowerMenuTable(powerid){
+        $("#menuTable").datagrid({
+            url:"../user/findMenu?powerid="+powerid,
+            //toolbar:'#toolbar1',
+            fit:true,
+            pagination:true,
+            pageSize:3,
+            //singleSelect:true,  只能选择一个
+            //pagePosition:'top',  定义分页工具栏位置
+            pageList:[1,2,3,5,10,20,30],
+            columns:[[
+                {field:'123',checkbox:true},
+                {field:'id',title:'编号'},
+                {field:'name',title:'菜单名称'},
+                {field:'url',title:'请求地址'},
+                {field:'abc',title:'操作',formatter:function(value,row,index){
+                        return '<a href="javascript:del2('+row.id+');">删除</a> | <a href="javascript:edit2('+row.id+');">修改</a>';
+                    }}
+            ]]
+        })
+    }
+    //初始化权限树
+    function initPowerTree(roleid){
+        $("#powerTree").tree({
+            url:'../user/findPowerTreeList?roleid='+roleid,
+            checkbox:true,
+            onContextMenu: function(e, node){
+                e.preventDefault();//阻止浏览器的右击事件
+                // 查找节点
+                $('#powerTree').tree('select', node.target);//选中当前节点
+                // 显示快捷菜单
+                $('#mm').menu('show', {
+                    left: e.pageX,
+                    top: e.pageY
+                });
+            },
+            onAfterEdit:function(node){
+                //alert(node.id);
+                //alert(node.text);
+                $.ajax({
+                    url:"../user/updatePower",
+                    type:"post",
+                    data:{id:node.id,text:node.text},
+                    success:function(){
+                        //刷新树数据
+                        //initPowerTree();
+                    }
+                })
+            },
+            onDblClick:function(node){
+                //给隐藏域赋值
+                $("#powerid").val(node.id);
+                initPowerMenuTable(node.id);
+            }
+
+        })
+    }
+    //角色查询列表
+    $("#roleTable").datagrid({
+        url:"../user/findRole",
+        toolbar:'#toolbar',
+        fit:true,
+        pagination:true,
+        pageSize:3,
+        //singleSelect:true,  只能选择一个
+        //pagePosition:'top',  定义分页工具栏位置
+        pageList:[1,2,3,5,10,20,30],
+        columns:[[
+            {field:'123',checkbox:true},
+            {field:'id',title:'编号'},
+            {field:'name',title:'角色名称'},
+            {field:'info',title:'描述'},
+            {field:'abc',title:'操作',formatter:function(value,row,index){
+                    return '<a href="javascript:del('+row.id+');">删除</a> | <a href="javascript:edit('+row.id+');">修改</a> | <a href="javascript:openRolePower('+row.id+')">赋权限</a>';
+                }}
+        ]]
+    })
+    //富文本编辑器
+    var editor = null;
+    KindEditor.ready(function(K) {//将编辑器添加到文档中
+        editor = K.create('#content', {
+            cssPath : '<%=request.getContextPath()%>/js/kindeditor/plugins/code/prettify.css',//指定编辑器iframe document的CSS文件，用于设置可视化区域的样式。
+            uploadJson : '<%=request.getContextPath()%>/js/kindeditor/jsp/upload_json.jsp', //指定上传文件的服务器端程序。
+            fileManagerJson : '<%=request.getContextPath()%>/js/kindeditor/jsp/file_manager_json.jsp',//指定浏览远程图片的服务器端程序。
+            allowFileManager : true,  //true时显示浏览远程服务器按钮 ;默认值: false
+            afterCreate : function() {
+                var self = this;
+                K.ctrl(document, 13, function() {
+                    self.sync();
+                    document.forms['example'].submit();
+                });
+                K.ctrl(self.edit.doc, 13, function() {
+                    self.sync();
+                    document.forms['example'].submit();
+                });
+            }
+        });
+        prettyPrint();
+    });
+</script>
+</html>

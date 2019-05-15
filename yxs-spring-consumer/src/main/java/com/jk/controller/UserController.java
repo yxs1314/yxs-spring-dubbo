@@ -39,7 +39,11 @@ public class UserController {
     @RequestMapping("findUser")
     @ResponseBody
     public HashMap<String,Object> findUser(Integer page, Integer rows){
+        System.out.println(111111111);
+
+
         return userService.findUser(page,rows);
+
 
     }
     @RequestMapping("deleteou")
